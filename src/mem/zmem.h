@@ -8,6 +8,9 @@
  *    z_free() - equivalent to free in most scenarios
  */
 
+#ifndef MEM_ZMEM_H
+#define MEM_ZMEM_H
+
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -72,3 +75,5 @@ void* z_realloc(void* ptr, uint32_t nbytes);
  * If it is not part of emergency space, it just calls system free.
  */
 void z_free(void* ptr);
+
+#endif /* MEM_ZMEM_H */

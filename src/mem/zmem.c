@@ -6,7 +6,7 @@
  * For API documentation regarding aforementioned functions, refer to Source/mem/zmem.h
  */
 
-#include "mem/zmem.h"
+#include "zmem.h"
 
 #include <errno.h>
 #include <stdint.h>
