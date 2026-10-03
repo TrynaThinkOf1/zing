@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#define malloc(n) (NULL) // force malloc to fail - early-stage testing.
 
 /*
  * The whole emergency space system is designed very primitively
@@ -50,13 +50,12 @@ void* z_alloc(uint32_t nbytes);
 /*
  * This reallocation function will first check if the block is inside
  * of the emergency space with a bounds check, if it is inside the
- * emergency space it will do one of three things:
+ * emergency space it will do one of two things:
  *    1. If there is enough empty space ahead of it, copy the ptr into
  *        the space ahead and then zero out the old spot, returning the
  *        pointer to the new space
- *    2. If there is not enough space ahead, it will:
- *      a: Go from 0 checking if there is enough freed contiguous space
- *      b: Print an error message and call exit(1)
+ *    2. If there is not enough space ahead, it will print an error
+ *        message and call exit(1)
  * 
  * Otherwise it will call system realloc. In the event that realloc
  * fails, it will call z_alloc and go from there. That would be super-duper
@@ -67,10 +66,6 @@ void* z_realloc(void* ptr, uint32_t nbytes);
 /*
  * The free function is relatively simple, inheriting from the design of
  * the z_alloc and z_realloc functions.
- * 
- * If the given ptr is part of emergency space, if it is the head of the
- * space then zero out and decrement index pointer. If it is not the head,
- * it will simply zero out the memory.
  * 
  * If it is not part of emergency space, it just calls system free.
  */
