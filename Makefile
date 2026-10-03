@@ -4,26 +4,41 @@ BUILD := release
 # TODO: Add an option about producing a manifest for a package manager like apt or brew
 # MANIFEST := none
 
-# TODO: Check for libraries: zlib and cURL (maybe)
-
-# TODO: Check for built in crypto systems for sha256 hashing (maybe if necessary?)
-
 PROG := zing
 SRCS := $(shell find src/ -name '*.c')
 OBJS := $(patsubst src/%.c, build/%.o, $(SRCS))
 
-LIBRARIES := zlib
-
-STANDARD := c17
-INCLUDE  = -Isrc $(foreach library, $(LIBRARIES), $(shell pkg-config --cflags $(library)))
-LIBS     = $(foreach library, $(LIBRARIES), $(shell pkg-config --libs $(library)))
+STANDARD := -std=c17
+INCLUDE   = -Isrc $(foreach library, $(LIBRARIES), $(shell pkg-config --cflags $(library)))
 WARNINGS := -Wall -Wextra -Wno-comment
+CFLAGS   := $(STANDARD) $(INCLUDE) $(WARNINGS) -MMD
+
+LIBRARIES := zlib
+LIBS       = $(foreach library, $(LIBRARIES), $(shell pkg-config --libs $(library)))
+
+ifeq ($(OS), Windows_NT)
+  ;
+else
+  UNAME_S = $(shell uname -s)
+  ifeq ($(UNAME_S), Linux)
+   	CFLAGS += -DZING_LINUX
+  endif
+  ifeq ($(UNAME_S), Darwin)
+  	CFLAGS += -DZING_MACOS
+  endif
+endif
+
+ifeq ($(BUILD), debug)
+	CFLAGS += -g -O0
+else
+	CFLAGS += -O1
+endif
 
 
 all: build libraries $(PROG)
-	ifeq ($(BUILD), debug)
-	  dsymutil $(PROG)
-	endif
+	@if [ "$(BUILD)" = "debug" ] && [ "$(UNAME_S)" = "Darwin" ]; then \
+	  dsymutil $(PROG); \
+	fi
 	# deal with the package manifest here also
 	@echo "program built"
 
@@ -40,12 +55,12 @@ libraries:
 
 # $^ expands to ALL of the prerequisites
 $(PROG): $(OBJS)
-	cc -std=c17 -Isrc -MMD $^ -o $@
+	cc $(CFLAGS) $^ -o $@ $(LIBS)
 
 # $< expands to the first (and only, in this case) prerequisite
 build/%.o: src/%.c
 	mkdir -p $(dir $@)
-	cc -std=c17 -Isrc -MMD -c $< -o $@
+	cc $(CFLAGS) -c $< -o $@
 
 build: ; @mkdir -p build
 
