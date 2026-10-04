@@ -10,7 +10,7 @@ OBJS := $(patsubst src/%.c, build/%.o, $(SRCS))
 
 STANDARD := -std=c17
 INCLUDE   = -Isrc $(foreach library, $(LIBRARIES), $(shell pkg-config --cflags $(library)))
-WARNINGS := -Wall -Wextra -Wno-comment
+WARNINGS := -Wall -Wextra -Wno-comment -Wno-discarded-qualifiers
 CFLAGS   := $(STANDARD) $(INCLUDE) $(WARNINGS) -MMD
 
 LIBRARIES := zlib
