@@ -22,7 +22,6 @@ else
   UNAME_S = $(shell uname -s)
   ifeq ($(UNAME_S), Linux)
    	CFLAGS += -DZING_LINUX
-    KDIR ?= /lib/modules/$(shell uname -r)/build
   endif
   ifeq ($(UNAME_S), Darwin)
   	CFLAGS += -DZING_MACOS
@@ -35,17 +34,6 @@ else
 	CFLAGS += -O1
 endif
 
-# ─── targets ───
-ifeq ($(UNAME_S), Linux)
-
-all:
-	$(MAKE) -C $(KDIR) M=$(PWD) modules
-	@echo "module built"
-
-clean:
-	$(MAKE) -C $(KDIR) M=$(PWD) clean
-
-else
 
 all: build libraries $(PROG)
 	@if [ "$(BUILD)" = "debug" ] && [ "$(UNAME_S)" = "Darwin" ]; then \
@@ -53,7 +41,6 @@ all: build libraries $(PROG)
 	fi
 	# deal with the package manifest here also
 	@echo "program built"
-
 
 libraries:
 	@for lib in $(LIBRARIES); do \
@@ -73,8 +60,6 @@ $(PROG): $(OBJS)
 build/%.o: src/%.c
 	mkdir -p $(dir $@)
 	cc $(CFLAGS) -c $< -o $@
-
-endif
 
 build: ; @mkdir -p build
 
