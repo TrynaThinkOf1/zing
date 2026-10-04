@@ -1,9 +1,9 @@
 /*
  * Zevi Berlin - ZING 2026
- * 
+ *
  * Implement all functions relating to memory management for the ZING program.
- * 
- * For API documentation regarding aforementioned functions, refer to Source/mem/zmem.h
+ *
+ * For API documentation regarding aforementioned functions, refer to src/mem/zmem.h
  */
 
 #include "zmem.h"
@@ -28,7 +28,7 @@ void* z_alloc(uint32_t nbytes) {
         fprintf(stderr, "ZING Memory Error.\n\tmalloc failed: %s\n\tbackup did not have enough space.\n", err);
         exit(1);
       }
-    
+
       // we will just allocate emergency space and return it
       space = &(__G_EMERGENCY_SPACE[__G_EMERGENCY_SPACE_INDEX]);
       __G_EMERGENCY_SPACE_INDEX += nbytes + 1;

@@ -1,6 +1,6 @@
 /*
  * Zevi Berlin - ZING 2026
- * 
+ *
  * Define all functions relating to memory management for the ZING program.
  * This includes:
  *    z_alloc() - equivalent to malloc in most scenarios, this WILL 0-out allocated memory
@@ -21,12 +21,12 @@
 /*
  * The whole emergency space system is designed very primitively
  * in hopes that it will only ever be used in dire scenarios.
- * 
+ *
  * Basically the plan for it is to have 16kb of empty space, which
  * is theoretically large enough to store a few code files and
  * miscellaneous internal objects, and then if system malloc fails
  * it will attempt to use the emergency space.
- * 
+ *
  * It keeps a running tab and simply returns a pointer to the next
  * available bytes of space in the array, relying on the caller to
  * use the given memory safely just like malloc.
@@ -41,7 +41,7 @@ static unsigned int __G_EMERGENCY_SPACE_INDEX = 0;
  * first attempt to use system malloc and just return that, otherwise
  * it will attempt to allocate the space into the emergency space (see
  * above).
- * 
+ *
  * On the off change that both allocations should fail, the function
  * will print an error message and call exit(1).
  */
@@ -56,7 +56,7 @@ void* z_alloc(uint32_t nbytes);
  *        pointer to the new space
  *    2. If there is not enough space ahead, it will print an error
  *        message and call exit(1)
- * 
+ *
  * Otherwise it will call system realloc. In the event that realloc
  * fails, it will call z_alloc and go from there. That would be super-duper
  * last-case end-the-world scenario.
@@ -66,7 +66,7 @@ void* z_realloc(void* ptr, uint32_t nbytes);
 /*
  * The free function is relatively simple, inheriting from the design of
  * the z_alloc and z_realloc functions.
- * 
+ *
  * If it is not part of emergency space, it just calls system free.
  */
 void z_free(void* ptr);
