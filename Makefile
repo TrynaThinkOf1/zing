@@ -34,6 +34,18 @@ else
 	CFLAGS += -O1
 endif
 
+# ─── Linux: delegate to kbuild ───
+ifeq ($(UNAME_S), Linux)
+
+all:
+	$(MAKE) -C $(KDIR) M=$(PWD) modules
+	@echo "module built"
+
+clean:
+	$(MAKE) -C $(KDIR) M=$(PWD) clean
+
+# ─── macOS / Windows: userspace build ───
+else
 
 all: build libraries $(PROG)
 	@if [ "$(BUILD)" = "debug" ] && [ "$(UNAME_S)" = "Darwin" ]; then \
@@ -61,6 +73,8 @@ $(PROG): $(OBJS)
 build/%.o: src/%.c
 	mkdir -p $(dir $@)
 	cc $(CFLAGS) -c $< -o $@
+
+endif
 
 build: ; @mkdir -p build
 
