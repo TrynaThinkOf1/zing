@@ -16,49 +16,42 @@
   #include <stdlib.h> // exit()
   #include <string.h> // strlen(), strerror()
 
-  #include <linux/module.h>
-  #include <crypto/hash.h>
-
-  struct sdesc {
-    struct shash_desc shash;
-    char ctx[];
-  };
-
-  void __calc_hash(struct crypto_shash* alg, const char* data, uint32_t datalen, unsigned char* digest) {
-    struct sdesc* sdesc;
-    int size = sizeof(struct shash_desc) + crypto_shash_descsize(alg);
-    sdesc = kmalloc(size, GFP_KERNEL);
-    if (!sdesc) {
-      const char* err = strerror(errno);
-      fprintf(stderr, "ZING Hashing Error.\n\tLinux kernel SHA256 allocation failed: %s\n", err);
-      exit(1);
-    }
-    sdesc->shash.tfm = alg;
-
-    crypto_shash_digest(&sdesc->shash, data, datalen, digest);
-    
-    kfree(sdesc);
-  }
+  #include <sys/socket.h>
+  #include <linux/if_alg.h>
+  #include <linux/socket.h>
 
   sha256_Hash sha256_hash_string(const char* string) {
     sha256_Hash hash;
     hash.raw = string;
 
-    struct crypto_shash* alg;
-    char* hash_alg_name = "sha256";
+    struct sockaddr_alg sa_alg;
+    sa_alg.salg_family = AF_ALG;
+    sa_alg.salg_type = "hash";
+    sa_alg.salg_name = "sha256";
 
-    alg = crypto_alloc_shash(hash_alg_name, 0, 0);
-    if (IS_ERR(alg)){
+    int sock_fd = socket(AF_ALG, SOCK_SEQPACKET, 0); // create a connection to the kernel's crypto system
+    if (sock_fd < 0) {
+      // the socket could not be allocated
       const char* err = strerror(errno);
-      fprintf(stderr, "ZING Hashing Error.\n\tLinux kernel SHA256 failed: %s\n", err);
+      fprintf(stderr, "ZING Hashing Error.\n\tFailed to allocate Linux kernel crypto: %s\n", err);
       exit(1);
     }
 
-    unsigned int datalen = sizeof(data) - 1; // remove the null byte
-    
-    __calc_hash(alg, string, datalen, hash.digest);
+    if (bind(sock_fd, (struct sockaddr *)&sa_alg, sizeof(sa_alg))) {
+      // the socket could not be connected, algorithm may not be supported
+      const char* err = strerror(errno);
+      fprintf(stderr, "ZING Hashing Error.\n\tFailed to allocate Linux kernel crypto: %s\n\tThe SHA256 algorithm may not be supported by your OS\n", err);
+      exit(1);
+    }
 
-    crypto_free_shash(alg);
+    int fd = accept(sock_fd, NULL, 0); // actually connect to the algorithm
+
+    write(fd, string, strlen(string)); // send the plaintext to the hasher
+    read(fd, hash.digest, SHA256_DIG_LEN); // read the hashed digest
+
+    // clean up resources
+    close(fd);
+    close(sock_fd);
 
     return hash;
   }
