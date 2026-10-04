@@ -1,9 +1,10 @@
 /*
  * Zevi Berlin - ZING 2026
  *
- * Define all functions relating to hashing for the ZING program.
+ * Define all functions and types relating to hashing for the ZING program.
  * This includes:
- *
+ *    struct sha256_Hash - contains the pair of the raw data and the hashed digest
+ *    sha256_hash_string - hash a raw string, returns the correspodning struct sha256_Hash
  *
  * This API is designed such that this header exposes the definitions for the
  * functions, then based on a compile-time macro `ZING_LINUX` or `ZING_MACOS`
