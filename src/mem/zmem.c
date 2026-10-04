@@ -54,11 +54,11 @@ void* z_realloc(void* ptr, uint32_t nbytes) {
       goto z_alloc_and_copy; // the system realloc failed, try to just newly mallocate or emergency space it and copy
     }
   }
-
+  return new_space;
+  //now define our label ... BK
   z_alloc_and_copy:
     new_space = z_alloc(nbytes); // if this doesnt err out then we are good to go below
     memcpy(new_space, ptr, nbytes);
-
   return new_space;
 }
 
