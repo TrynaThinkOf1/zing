@@ -15,6 +15,7 @@
   #include <stdio.h> // fprintf()
   #include <stdlib.h> // exit()
   #include <string.h> // strlen(), strerror()
+  #include <unistd.h> // read(), write()
 
   #include <sys/socket.h>
   #include <linux/if_alg.h>
@@ -26,8 +27,8 @@
 
     struct sockaddr_alg sa_alg;
     sa_alg.salg_family = AF_ALG;
-    sa_alg.salg_type = "hash";
-    sa_alg.salg_name = "sha256";
+    sa_alg.salg_type = {'h', 'a', 's', 'h'}; // dont ask, idk why it makes me do this.
+    sa_alg.salg_name = {'s', 'h', 'a', '2', '5', '6'}; // ^
 
     int sock_fd = socket(AF_ALG, SOCK_SEQPACKET, 0); // create a connection to the kernel's crypto system
     if (sock_fd < 0) {
@@ -47,7 +48,8 @@
     int fd = accept(sock_fd, NULL, 0); // actually connect to the algorithm
 
     write(fd, string, strlen(string)); // send the plaintext to the hasher
-    read(fd, hash.digest, SHA256_DIG_LEN); // read the hashed digest
+    read(fd, hash.digest, 32); // read the hashed digest
+    hash.digest[32] = 0;
 
     // clean up resources
     close(fd);
