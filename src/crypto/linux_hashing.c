@@ -25,10 +25,11 @@
     sha256_Hash hash;
     hash.raw = string;
 
-    struct sockaddr_alg sa_alg;
-    sa_alg.salg_family = AF_ALG;
-    sa_alg.salg_type = {'h', 'a', 's', 'h'}; // dont ask, idk why it makes me do this.
-    sa_alg.salg_name = {'s', 'h', 'a', '2', '5', '6'}; // ^
+    struct sockaddr_alg sa_alg = {
+      .salg_family = AF_ALG,
+      .salg_type = "hash",
+      .salg_name = "sha256"
+    };
 
     int sock_fd = socket(AF_ALG, SOCK_SEQPACKET, 0); // create a connection to the kernel's crypto system
     if (sock_fd < 0) {
