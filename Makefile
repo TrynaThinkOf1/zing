@@ -22,6 +22,7 @@ else
   UNAME_S = $(shell uname -s)
   ifeq ($(UNAME_S), Linux)
    	CFLAGS += -DZING_LINUX
+    KDIR ?= /lib/modules/$(shell uname -r)/build
   endif
   ifeq ($(UNAME_S), Darwin)
   	CFLAGS += -DZING_MACOS
@@ -34,7 +35,7 @@ else
 	CFLAGS += -O1
 endif
 
-# ─── Linux: delegate to kbuild ───
+# ─── targets ───
 ifeq ($(UNAME_S), Linux)
 
 all:
@@ -44,7 +45,6 @@ all:
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean
 
-# ─── macOS / Windows: userspace build ───
 else
 
 all: build libraries $(PROG)
