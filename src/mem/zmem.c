@@ -13,7 +13,6 @@
 #include <stdio.h> // fprintf()
 #include <stdlib.h> // malloc(), free()
 #include <string.h> // strerror(), memset()
-#define malloc(n) (NULL) // force malloc to fail - early-stage testing.
 
 void* z_alloc(uint32_t nbytes) {
   void* space = malloc(nbytes);

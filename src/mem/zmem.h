@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define malloc(n) (NULL) // force malloc to fail - early-stage testing.
 
 /*
  * The whole emergency space system is designed very primitively
