@@ -22,11 +22,11 @@
 
   sha256_Hash sha256_hash_string(const char* string) {
     sha256_Hash hash;
-    hash.raw = string;
+    hash.len = SHA256_DIGEST_LENGTH;
 
     CC_SHA256(string, strlen(string), hash.digest);
 
-    hash.digest[CC_SHA256_DIGEST_LENGTH] = 0;
+    // hash.digest[CC_SHA256_DIGEST_LENGTH] = 0; // no need because we store length
 
     return hash;
   }

@@ -17,9 +17,13 @@
 #ifndef CRYPTO_HASHING_H
 #define CRYPTO_HASHING_H
 
+#include <stdlib.h>
+
+#define SHA256_DIGEST_LENGTH 32
+
 typedef struct {
-  char* raw;
-  unsigned char digest[32 + 1]; // digest length is 32 (256-bit), add one for the null terminator
+  size_t len;
+  unsigned char digest[SHA256_DIGEST_LENGTH]; // digest length is 32 (256-bit)
 } sha256_Hash;
 
 /*

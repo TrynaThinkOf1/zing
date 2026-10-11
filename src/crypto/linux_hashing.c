@@ -22,8 +22,8 @@
   #include <linux/socket.h>
 
   sha256_Hash sha256_hash_string(const char* string) {
-    sha256_Hash hash;
-    hash.raw = string;
+    LenArr hash;
+    hash.len = SHASHA256_DIGEST_LENGTH;
 
     struct sockaddr_alg sa_alg = {
       .salg_family = AF_ALG,
@@ -49,8 +49,8 @@
     int fd = accept(sock_fd, NULL, 0); // actually connect to the algorithm
 
     write(fd, string, strlen(string)); // send the plaintext to the hasher
-    read(fd, hash.digest, 32); // read the hashed digest
-    hash.digest[32] = 0;
+    read(fd, hash.digest, SHA256_DIGEST_LENGTH); // read the hashed digest
+    // hash.digest[SHA256_DIGEST_LENGTH] = 0; // no need because we store the length
 
     // clean up resources
     close(fd);
