@@ -21,7 +21,7 @@
   #include <linux/if_alg.h>
   #include <linux/socket.h>
 
-  sha256_Hash sha256_hash_string(const char* string) {
+  sha256_Hash sha256_hash_string(const char* string, size_t len) {
     LenArr hash;
     hash.len = SHASHA256_DIGEST_LENGTH;
 
@@ -48,7 +48,7 @@
 
     int fd = accept(sock_fd, NULL, 0); // actually connect to the algorithm
 
-    write(fd, string, strlen(string)); // send the plaintext to the hasher
+    write(fd, string, len); // send the plaintext to the hasher
     read(fd, hash.digest, SHA256_DIGEST_LENGTH); // read the hashed digest
     // hash.digest[SHA256_DIGEST_LENGTH] = 0; // no need because we store the length
 

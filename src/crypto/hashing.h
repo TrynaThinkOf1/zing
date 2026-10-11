@@ -30,6 +30,6 @@ typedef struct {
  * Very basic function, simply takes a string and hashes it, then
  * it loads the data and the digest into the struct and returns it.
  */
-sha256_Hash sha256_hash_string(const char* string);
+sha256_Hash sha256_hash_string(const char* string, size_t len);
 
 #endif /* CRYPTO_HASHING_H */
