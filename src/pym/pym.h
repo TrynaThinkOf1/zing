@@ -41,6 +41,6 @@ zlib_Data zlib_compress_string(char* string);
  * 
  * Should this fail, even for a user reason, it will print the error and exit.
  */
-zlib_Data zlib_decompress_string(char* string);
+zlib_Data zlib_decompress_string(unsigned char* string, size_t len);
 
 #endif /* PYM_PYM_H */
