@@ -29,6 +29,8 @@ bool checksum_compare(const sha256_Hash* hash1, const sha256_Hash* hash2);
  */
 sha256_Hash checksum_sha256_compute();
 
+/* */
+
 /*
  * Reads the .cs file and returns the contained hash
  * 

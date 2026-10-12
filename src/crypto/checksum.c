@@ -14,14 +14,14 @@
 #include <stdbool.h>
 #include <stdio.h> // fprintf()
 #include <stdlib.h>
-#include <string.h> // strerror()
+#include <string.h> // strerror(), memcpy(), strcmp()
 #include <sys/stat.h>
 #include <sys/types.h> // read()
 #include <sys/uio.h> // read()
 #include <unistd.h> // close()
 
 #include "crypto/hashing.h"
-#include "hashing.h"
+#include "mem/zmem.h"
 
 
 bool checksum_compare(const sha256_Hash* hash1, const sha256_Hash* hash2) {
@@ -32,7 +32,58 @@ bool checksum_compare(const sha256_Hash* hash1, const sha256_Hash* hash2) {
   return true;
 }
 
-sha256_Hash checksum_sha256_compute();
+// honestly this code is pretty much taken from https://stackoverflow.com/a/44037947
+// returns final length of array
+size_t __recurse_add(char* d, char*** path_list, size_t path_list_len) {
+  DIR* dir;
+  struct dirent* entry;
+  struct stat s;
+
+  if (!(dir = opendir(d))) {
+    const char* err = strerror(errno);
+    fprintf(stderr, "ZING Checksum Error.\n\tFailed to open %s directory or subdirectory: %s\n", d, err);
+    exit(1);
+  }
+
+  while ((entry = readdir(dir))) {
+      if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue; // if the directory is . or .. skip
+      
+      char path[4096]; // idk I saw this somewhere as the maximum path length
+      int len = snprintf(path, sizeof(path) - 1, "%s/%s", d, entry->d_name); // makes pathname, nul terminates
+      // uncomment if my random constant is wrong
+      // if (len < 0 || (size_t)len >= sizeof(path)) {
+      //   fprintf(stderr, "ZING Checksum Error.\n\tPath too long: %s/%s\n", d, entry->d_name);
+      //   exit(1);
+      // }
+
+      // TODO: Maybe move lstat out and check for error?
+      if (lstat(path, &s) == 0 && S_ISDIR(s.st_mode)) { // if it's a directory
+          path_list_len = __recurse_add(path, path_list, path_list_len);
+      } else { // it's a file, so add the path name
+        *path_list = z_realloc(*path_list, sizeof(char*) * (path_list_len + 1));
+        char* new_path = z_alloc(len + 1);
+        memcpy(new_path, path, len + 1);
+        (*path_list)[path_list_len++] = new_path;
+      }
+  };
+  
+  closedir(dir);
+
+  return path_list_len;
+}
+
+sha256_Hash checksum_sha256_compute() {
+  char** filename_list = z_alloc(sizeof(char*));
+  size_t len = __recurse_add(".zing", &filename_list, 0);
+
+  for (size_t i = 0; i < len; i++) {
+    printf("%s\n", filename_list[i]);
+  }
+
+  // TODO: Must use qsort to ensure that file order is machine-independent
+}
+
+/* */
 
 sha256_Hash checksum_sha256_read() {
   int cs = open(".zing/.cs", O_RDONLY);
