@@ -5,6 +5,7 @@
  *    checksum_compare - compare two different sha256 sums
  *    checksum_sha256_compute - walk .zing directory and calculate the sha256 hash
  *    checksum_sha256_read - open the .cs file to read the checksum
+ *    checksum_sha256_write - open the .cs file to write a new checksum
  */
 
 #ifndef CRYPTO_CHECKSUM_H
@@ -34,5 +35,12 @@ sha256_Hash checksum_sha256_compute();
  * If this fails, it will print the error and exit
  */
 sha256_Hash checksum_sha256_read();
+
+/*
+ * Writes a sha256 hash to a file to store a checksum
+ * 
+ * if this fails, it will print the error and exit
+ */
+void checksum_sha256_write(const sha256_Hash* hash);
 
 #endif /* CRYPTO_CHECKSUM_H */

@@ -55,3 +55,20 @@ sha256_Hash checksum_sha256_read() {
 
   return hash;
 }
+
+void checksum_sha256_write(const sha256_Hash* hash) {
+  int cs = open(".zing/.cs", O_WRONLY | O_CREAT);
+  if (cs < 0) {
+    const char* err = strerror(errno);
+    fprintf(stderr, "ZING Checksum Error.\n\tFailed to open the SHA256 checksum: %s\n", err);
+    exit(1);
+  }
+  
+  if (write(cs, hash->digest, hash->len) != hash->len) {
+    const char* err = strerror(errno);
+    fprintf(stderr, "ZING Checksum Error.\n\tFailed to write the SHA256 checksum: %s\n", err);
+    exit(1);
+  }
+
+  close(cs);
+}
