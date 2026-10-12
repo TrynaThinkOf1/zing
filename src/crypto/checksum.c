@@ -8,17 +8,17 @@
 
 #include "crypto/checksum.h"
 
-#include <dirent.h>
+#include <dirent.h> // opendir(), readdir(), closedir()
 #include <errno.h>
 #include <fcntl.h> // open()
-#include <stdbool.h>
-#include <stdio.h> // fprintf()
+#include <stdbool.h> // qsort()
+#include <stdio.h> // fprintf(), snprintf()
 #include <stdlib.h>
-#include <string.h> // strerror(), memcpy(), strcmp()
-#include <sys/stat.h>
+#include <string.h> // strerror(), memcpy(), strcmp(), strlen()
+#include <sys/stat.h> // lstat(), S_ISDIR() macro
 #include <sys/types.h> // read()
 #include <sys/uio.h> // read()
-#include <unistd.h> // close()
+#include <unistd.h> // close(), read(), write()
 
 #include "crypto/hashing.h"
 #include "mem/zmem.h"
@@ -72,6 +72,9 @@ size_t __recurse_add(char* d, char*** path_list, size_t path_list_len) {
   return path_list_len;
 }
 
+// this function receives POINTERS to the data, not the data themselves
+int compar(const void* a, const void* b) { return strcmp(*(const char**)a, *(const char**)b); }
+
 sha256_Hash checksum_sha256_compute() {
   char** filename_list = z_alloc(sizeof(char*));
   size_t len = __recurse_add(".zing", &filename_list, 0);
@@ -79,8 +82,14 @@ sha256_Hash checksum_sha256_compute() {
   for (size_t i = 0; i < len; i++) {
     printf("%s\n", filename_list[i]);
   }
+  printf("\n\nsorted:\n");
 
-  // TODO: Must use qsort to ensure that file order is machine-independent
+  // quicksort the paths lexicographically
+  qsort(filename_list, len, sizeof(char*), compar);
+
+  for (size_t i = 0; i < len; i++) {
+    printf("%s\n", filename_list[i]);
+  }
 }
 
 /* */
