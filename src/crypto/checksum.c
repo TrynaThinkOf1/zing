@@ -10,17 +10,14 @@
 
 #include <dirent.h> // opendir(), readdir(), closedir()
 #include <errno.h>
-#include <fcntl.h> // open()
 #include <stdbool.h> // qsort()
 #include <stdio.h> // fprintf(), snprintf(), fopen(), fread(), fclose()
 #include <stdlib.h>
 #include <string.h> // strerror(), memcpy(), strcmp(), strlen()
 #include <sys/stat.h> // lstat(), S_ISDIR() macro
-#include <sys/types.h> // read()
-#include <sys/uio.h> // read()
-#include <unistd.h> // close(), read(), write()
 
 #include "crypto/hashing.h"
+#include "hashing.h"
 #include "mem/zmem.h"
 
 
@@ -94,7 +91,7 @@ sha256_Hash checksum_sha256_compute() {
     }
     
     FILE* file = fopen(filename_list[i], "r");
-    if (file < 0) {
+    if (file == NULL) {
       const char* err = strerror(errno);
       fprintf(stderr, "ZING Checksum Error.\n\tFailed to open %s: %s\n", filename_list[i], err);
       exit(1);
@@ -121,40 +118,40 @@ sha256_Hash checksum_sha256_compute() {
 /* */
 
 sha256_Hash checksum_sha256_read() {
-  int cs = open(".zing/.cs", O_RDONLY);
-  if (cs < 0) {
+  FILE* cs = fopen(".zing/.cs", "r");
+  if (cs == NULL) {
     const char* err = strerror(errno);
     fprintf(stderr, "ZING Checksum Error.\n\tFailed to open the SHA256 checksum: %s\n", err);
     exit(1);
   }
 
   sha256_Hash hash;
-  hash.len = 32;
+  hash.len = SHA256_DIGEST_LENGTH;
 
-  if (read(cs, hash.digest, hash.len) != hash.len) {
+  if (fread(hash.digest, sizeof(unsigned char), hash.len, cs) != hash.len) {
     const char* err = strerror(errno);
     fprintf(stderr, "ZING Checksum Error.\n\tFailed to read the SHA256 checksum: %s\n\tPossible tampering.\n", err);
     exit(1);
   }
 
-  close(cs);
+  fclose(cs);
 
   return hash;
 }
 
 void checksum_sha256_write(const sha256_Hash* hash) {
-  int cs = open(".zing/.cs", O_WRONLY | O_CREAT);
-  if (cs < 0) {
+  FILE* cs = fopen(".zing/.cs", "w");
+  if (cs == NULL) {
     const char* err = strerror(errno);
     fprintf(stderr, "ZING Checksum Error.\n\tFailed to open the SHA256 checksum: %s\n", err);
     exit(1);
   }
   
-  if (write(cs, hash->digest, hash->len) != hash->len) {
+  if (fwrite(hash->digest, sizeof(unsigned char), hash->len, cs) != hash->len) {
     const char* err = strerror(errno);
     fprintf(stderr, "ZING Checksum Error.\n\tFailed to write the SHA256 checksum: %s\n", err);
     exit(1);
   }
 
-  close(cs);
+  fclose(cs);
 }
