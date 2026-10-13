@@ -12,7 +12,7 @@
 #include <errno.h>
 #include <fcntl.h> // open()
 #include <stdbool.h> // qsort()
-#include <stdio.h> // fprintf(), snprintf()
+#include <stdio.h> // fprintf(), snprintf(), fopen(), fread(), fclose()
 #include <stdlib.h>
 #include <string.h> // strerror(), memcpy(), strcmp(), strlen()
 #include <sys/stat.h> // lstat(), S_ISDIR() macro
@@ -50,6 +50,7 @@ size_t __recurse_add(char* d, char*** path_list, size_t path_list_len) {
       
       char path[4096]; // idk I saw this somewhere as the maximum path length
       int len = snprintf(path, sizeof(path) - 1, "%s/%s", d, entry->d_name); // makes pathname, nul terminates
+      if (strcmp(path, ".cs") == 0) continue; // skip the checksum file
       // uncomment if my random constant is wrong
       // if (len < 0 || (size_t)len >= sizeof(path)) {
       //   fprintf(stderr, "ZING Checksum Error.\n\tPath too long: %s/%s\n", d, entry->d_name);
@@ -78,18 +79,43 @@ int compar(const void* a, const void* b) { return strcmp(*(const char**)a, *(con
 sha256_Hash checksum_sha256_compute() {
   char** filename_list = z_alloc(sizeof(char*));
   size_t len = __recurse_add(".zing", &filename_list, 0);
-
-  for (size_t i = 0; i < len; i++) {
-    printf("%s\n", filename_list[i]);
-  }
-  printf("\n\nsorted:\n");
-
+  
   // quicksort the paths lexicographically
   qsort(filename_list, len, sizeof(char*), compar);
 
+  sha256_SM* state = sha256_sm_init();//(&state);
+
   for (size_t i = 0; i < len; i++) {
-    printf("%s\n", filename_list[i]);
+    struct stat st;
+    if (stat(filename_list[i], &st) != 0) {
+      const char* err = strerror(errno);
+      fprintf(stderr, "ZING Checksum Error.\n\tFailed to stat %s: %s\n", filename_list[i], err);
+      exit(1);
+    }
+    
+    FILE* file = fopen(filename_list[i], "r");
+    if (file < 0) {
+      const char* err = strerror(errno);
+      fprintf(stderr, "ZING Checksum Error.\n\tFailed to open %s: %s\n", filename_list[i], err);
+      exit(1);
+    }
+
+    char data[st.st_size];
+
+    if (fread(data, sizeof(unsigned char), st.st_size, file) < st.st_size) {
+      const char* err = strerror(errno);
+      fprintf(stderr, "ZING Checksum Error.\n\tFailed to read %s: %s\n", filename_list[i], err);
+      exit(1);
+    }
+
+    sha256_sm_update(state, data, st.st_size);
+
+    fclose(file);
   }
+
+  sha256_Hash hash = sha256_sm_final(state);
+  
+  return hash;
 }
 
 /* */
