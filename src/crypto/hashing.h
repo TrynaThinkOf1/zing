@@ -42,8 +42,10 @@ sha256_Hash sha256_hash_string(const char* string, size_t len);
 
 /*
  * Internally just calls whatever funciton the crypto api uses
+ * 
+ * easy for macos, harder for linux.
  */
-sha256_SM sha256_sm_init(const char* string, size_t len);
+sha256_SM* sha256_sm_init(void);
 void sha256_sm_update(sha256_SM* state, const char* string, size_t len);
 sha256_Hash sha256_sm_final(sha256_SM* state);
 
