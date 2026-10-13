@@ -25,41 +25,9 @@
   #include "mem/zmem.h"
 
   sha256_Hash sha256_hash_string(const char* string, size_t len) {
-    LenArr hash;
-    hash.len = SHASHA256_DIGEST_LENGTH;
-
-    struct sockaddr_alg sa_alg = {
-      .salg_family = AF_ALG,
-      .salg_type = "hash",
-      .salg_name = "sha256"
-    };
-
-    int sock_fd = socket(AF_ALG, SOCK_SEQPACKET, 0); // create a connection to the kernel's crypto system
-    if (sock_fd < 0) {
-      // the socket could not be allocated
-      const char* err = strerror(errno);
-      fprintf(stderr, "ZING Hashing Error.\n\tFailed to allocate Linux kernel crypto: %s\n", err);
-      exit(1);
-    }
-
-    if (bind(sock_fd, (struct sockaddr *)&sa_alg, sizeof(sa_alg))) {
-      // the socket could not be connected, algorithm may not be supported
-      const char* err = strerror(errno);
-      fprintf(stderr, "ZING Hashing Error.\n\tFailed to allocate Linux kernel crypto: %s\n\tThe SHA256 algorithm may not be supported by your OS\n", err);
-      exit(1);
-    }
-
-    int fd = accept(sock_fd, NULL, 0); // actually connect to the algorithm
-
-    write(fd, string, len); // send the plaintext to the hasher
-    read(fd, hash.digest, SHA256_DIGEST_LENGTH); // read the hashed digest
-    // hash.digest[SHA256_DIGEST_LENGTH] = 0; // no need because we store the length
-
-    // clean up resources
-    close(fd);
-    close(sock_fd);
-
-    return hash;
+    sha256_SM* state = sha256_sm_init();
+    sha256_sm_update(state, string, len);
+    return sha256_sm_final(state);
   }
 
   /* */

@@ -39,9 +39,9 @@
   struct sha256_SM { CC_SHA256_CTX inner; };
   
   sha256_SM* sha256_sm_init(void) {
-      sha256_SM* ctx = z_alloc(sizeof(*ctx));
-      CC_SHA256_Init(&ctx->inner);
-      return ctx;
+      sha256_SM* state = z_alloc(sizeof(*state));
+      CC_SHA256_Init(&state->inner);
+      return state;
   }
   
   void sha256_sm_update(sha256_SM* state, const char* string, size_t len) {
