@@ -7,3 +7,5 @@ __cache__
 __pycache__
 .DS_Store
 .cache
+
+.zingignore
